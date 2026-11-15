@@ -41,7 +41,7 @@ public partial class MainForm : Form
     string lang = "ms";
     CardPanel topCard;
     Action pendingAfter;   // dijalankan di benang UI sebaik kerja latar tamat (cth. ringkasan hasil)
-    string savedLang = "ms";
+    string savedLang = "en";
     NotifyIcon tray; bool toTray, exiting; CheckBox chkTray;
     bool guideSeen, inPrompt; string newUsb;
     RButton bAdmin;
