@@ -49,6 +49,7 @@ public partial class MainForm : Form
     // flashdisk baharu dicucuk: tanya dahulu, jangan buat apa-apa tanpa kebenaran
     // dengan semakan automatik: periksa akar flashdisk (baca sahaja); tanya hanya kalau ada tanda virus pintasan, kalau bersih cuma catat di log
     bool avAuto; CheckBox chkAv;   // imbas antivirus juga semasa semakan automatik (lalai mati)
+    bool appUpd = true; string appChk = "", appSeen = ""; CheckBox chkAppUpd;   // semakan versi USB Shield di GitHub
     bool autoCheck = true;
     void OfferClean()
     {

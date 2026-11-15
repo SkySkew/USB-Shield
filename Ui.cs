@@ -197,7 +197,7 @@ public partial class MainForm : Form
         KeyDown += (s, e) => { if (e.KeyCode == Keys.F11) ToggleMax(); else if (e.KeyCode == Keys.F5 && !busy) LoadDrives(); };
         devTimer.Interval = 1500; devTimer.Tick += (s, e) => { devTimer.Stop(); if (busy) return; LoadDrives(); OfferClean(); };
         ShowPage(11); Tips(); LoadDrives();
-        Shown += (s, e) => UpdBg();
+        Shown += (s, e) => { UpdBg(); AppUpdBg(); };
         if (savedLang == "en") SetLang("en");
     }
     protected override void WndProc(ref Message m)
@@ -226,12 +226,16 @@ public partial class MainForm : Form
                 else if (k == "max") max = v == "1";
                 else if (k == "guide") guideSeen = v == "1";
                 else if (k == "auto") autoCheck = v != "0";
+                else if (k == "appupd") appUpd = v != "0";
+                else if (k == "appchk") appChk = v;
+                else if (k == "appseen") appSeen = v;
                 else if (k == "avauto") avAuto = v == "1";
                                 else if (k == "upd") { string[] u = v.Split(','); int n; if (u.Length == 2 && int.TryParse(u[1], out n)) { updDay = u[0]; updN = n; } }
             }
             if (chkAuto != null) chkAuto.Checked = autoCheck;
             if (chkTray != null) chkTray.Checked = toTray;
             if (chkAv != null) chkAv.Checked = avAuto;
+            if (chkAppUpd != null) chkAppUpd.Checked = appUpd;
             Rectangle wa = Screen.PrimaryScreen.WorkingArea;
             if (w >= MinimumSize.Width && h >= MinimumSize.Height && w <= wa.Width && h <= wa.Height) Size = new Size(w, h);
             if (max) WindowState = FormWindowState.Maximized;
@@ -245,7 +249,7 @@ public partial class MainForm : Form
             Directory.CreateDirectory(Path.GetDirectoryName(SettingsPath));
             Size sz = WindowState == FormWindowState.Normal ? Size : RestoreBounds.Size;
             float k; using (Graphics g = CreateGraphics()) k = g.DpiX / 96f;
-            File.WriteAllText(SettingsPath, "lang=" + lang + "\r\nw=" + (int)(sz.Width / k) + "\r\nh=" + (int)(sz.Height / k) + "\r\nmax=" + (WindowState == FormWindowState.Maximized ? 1 : 0) + "\r\nguide=" + (guideSeen ? 1 : 0) + "\r\nauto=" + (autoCheck ? 1 : 0) + "\r\navauto=" + (avAuto ? 1 : 0) + "\r\ntray=" + (toTray ? 1 : 0) + (updDay.Length > 0 ? "\r\nupd=" + updDay + "," + updN : "") + "\r\n");
+            File.WriteAllText(SettingsPath, "lang=" + lang + "\r\nw=" + (int)(sz.Width / k) + "\r\nh=" + (int)(sz.Height / k) + "\r\nmax=" + (WindowState == FormWindowState.Maximized ? 1 : 0) + "\r\nguide=" + (guideSeen ? 1 : 0) + "\r\nauto=" + (autoCheck ? 1 : 0) + "\r\nappupd=" + (appUpd ? 1 : 0) + "\r\nappchk=" + appChk + "\r\nappseen=" + appSeen + "\r\navauto=" + (avAuto ? 1 : 0) + "\r\ntray=" + (toTray ? 1 : 0) + (updDay.Length > 0 ? "\r\nupd=" + updDay + "," + updN : "") + "\r\n");
         }
         catch { }
     }
@@ -263,7 +267,7 @@ public partial class MainForm : Form
         Label ss = Lbl("Pulihkan flashdisk, buang virus", 20, 68, 160, 30, false, false); ss.ForeColor = Col("#9FD5CC"); ss.Font = FSmall;
         sideNav = new SideNav(); sideNav.Location = new Point(0, 104); sideNav.Size = new Size(190, 448); sideNav.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Bottom; sideNav.Tr = T;
         BuildNav(); sideNav.ItemClicked += it => ShowPage(it.Page, it.Mode);
-        Label ver = A(Lbl("Versi 2.0", 20, 604, 150, 20, false, false), BL); ver.Font = FSmall; ver.ForeColor = Col("#9FD5CC");
+        Label ver = A(Lbl("Versi 2.1", 20, 604, 150, 20, false, false), BL); ver.Font = FSmall; ver.ForeColor = Col("#9FD5CC");
         side.Controls.Add(logo); side.Controls.Add(st); side.Controls.Add(ss); side.Controls.Add(ver); side.Controls.Add(sideNav);
         if (IsAdmin) { Label am = A(Lbl("Mod Administrator aktif", 20, 572, 160, 20, false, false), BL); am.Font = FSmall; am.ForeColor = Col("#7DD3A8"); side.Controls.Add(am); }
         else { bAdmin = A(Btn("Jalankan sebagai Admin", 10, 556, 170, 34, "ghost", (s, e) => ActElevate()), BL); side.Controls.Add(bAdmin); }
@@ -489,22 +493,27 @@ public partial class MainForm : Form
         Head(pOp, "Pilihan", "Bahasa dan tetapan USB Shield.", 22);
         CardPanel o1 = A(InfoCard(60, "Bahasa", "Pilih bahasa paparan.", 56, ""), TLR);
         o1.Controls.Add(A(Btn("Bahasa Melayu", 290, 12, 150, 32, "secondary", (s, e) => SetLang("ms")), TR)); o1.Controls.Add(A(Btn("English", 450, 12, 100, 32, "secondary", (s, e) => SetLang("en")), TR));
-        CardPanel o2 = A(InfoCard(122, "Semak flashdisk automatik", "Periksa flashdisk sebaik dicucuk dan tanya hanya jika ada tanda virus pintasan.", 76, ""), TLR);
-        chkAuto = A(new CheckBox(), TR); chkAuto.Text = "Hidupkan"; chkAuto.Font = FReg; chkAuto.Checked = autoCheck; chkAuto.BackColor = Color.Transparent; chkAuto.SetBounds(360, 24, 190, 28);
+        CardPanel o2 = A(InfoCard(122, "Semak flashdisk automatik", "Periksa flashdisk sebaik dicucuk dan tanya hanya jika ada tanda virus pintasan.", 72, ""), TLR);
+        chkAuto = A(new CheckBox(), TR); chkAuto.Text = "Hidupkan"; chkAuto.Font = FReg; chkAuto.Checked = autoCheck; chkAuto.BackColor = Color.Transparent; chkAuto.SetBounds(360, 22, 190, 28);
         chkAuto.CheckedChanged += (s, e) => { autoCheck = chkAuto.Checked; SaveSettings(); }; o2.Controls.Add(chkAuto);
-        CardPanel o2b = A(InfoCard(206, "Imbas antivirus juga", "Selepas semakan cepat, imbas flashdisk dengan Defender (atau ClamAV jika tiada). Lebih lama; boleh dibatalkan.", 76, ""), TLR);
-        chkAv = A(new CheckBox(), TR); chkAv.Text = "Hidupkan"; chkAv.Font = FReg; chkAv.BackColor = Color.Transparent; chkAv.SetBounds(360, 24, 190, 28); chkAv.Checked = avAuto;
+        CardPanel o2b = A(InfoCard(200, "Imbas antivirus juga", "Selepas semakan cepat, imbas flashdisk dengan Defender (atau ClamAV jika tiada). Lebih lama; boleh dibatalkan.", 72, ""), TLR);
+        chkAv = A(new CheckBox(), TR); chkAv.Text = "Hidupkan"; chkAv.Font = FReg; chkAv.BackColor = Color.Transparent; chkAv.SetBounds(360, 22, 190, 28); chkAv.Checked = avAuto;
         chkAv.CheckedChanged += (s, e) => { avAuto = chkAv.Checked; SaveSettings(); }; o2b.Controls.Add(chkAv);
-        CardPanel o4 = A(InfoCard(290, "Keselamatan USB (akaun ini)", "Halang flashdisk dibuka atau dijalankan sendiri oleh Windows.", 80, ""), TLR);
+        CardPanel o4 = A(InfoCard(278, "Keselamatan USB (akaun ini)", "Halang flashdisk dibuka atau dijalankan sendiri oleh Windows.", 80, ""), TLR);
         bAP1 = A(Btn("Matikan AutoPlay/AutoRun", 360, 6, 190, 32, "secondary", (s, e) => AutoOff()), TR); bAP2 = A(Btn("Pulihkan tetapan asal", 360, 42, 190, 32, "secondary", (s, e) => AutoOn()), TR);
         o4.Controls.Add(bAP1); o4.Controls.Add(bAP2);
-        CardPanel o3 = A(InfoCard(378, "Ikon di dulang sistem", "Bila tetingkap ditutup, app terus berjalan di dulang sistem. Klik dua kali ikon untuk membukanya.", 76, ""), TLR);
-        chkTray = A(new CheckBox(), TR); chkTray.Text = "Hidupkan"; chkTray.Font = FReg; chkTray.BackColor = Color.Transparent; chkTray.SetBounds(360, 24, 190, 28); chkTray.Checked = toTray;
+        CardPanel o3 = A(InfoCard(364, "Ikon di dulang sistem", "Bila tetingkap ditutup, app terus berjalan di dulang sistem. Klik dua kali ikon untuk membukanya.", 72, ""), TLR);
+        chkTray = A(new CheckBox(), TR); chkTray.Text = "Hidupkan"; chkTray.Font = FReg; chkTray.BackColor = Color.Transparent; chkTray.SetBounds(360, 22, 190, 28); chkTray.Checked = toTray;
         chkTray.CheckedChanged += (s, e) => { toTray = chkTray.Checked; if (tray != null) tray.Visible = toTray; SaveSettings(); }; o3.Controls.Add(chkTray);
-        CardPanel o5 = A(InfoCard(462, "Bantuan", "Panduan dan maklumat app.", 56, ""), TLR);
+        CardPanel o6 = A(InfoCard(442, "Kemas kini USB Shield", "Semak versi baharu di GitHub. Hanya membuka halaman muat turun; tiada apa dipasang sendiri.", 80, ""), TLR);
+        chkAppUpd = A(new CheckBox(), TR); chkAppUpd.Text = "Semak automatik"; chkAppUpd.Font = FReg; chkAppUpd.BackColor = Color.Transparent; chkAppUpd.SetBounds(360, 8, 190, 28); chkAppUpd.Checked = appUpd;
+        chkAppUpd.CheckedChanged += (s, e) => { appUpd = chkAppUpd.Checked; SaveSettings(); }; o6.Controls.Add(chkAppUpd);
+        o6.Controls.Add(A(Btn("Semak sekarang", 360, 40, 190, 32, "secondary", (s, e) => AppUpdCheck(true)), TR));
+        CardPanel o5 = A(InfoCard(528, "Bantuan", "Panduan dan maklumat app.", 56, ""), TLR);
         o5.Controls.Add(A(Btn("Panduan", 290, 12, 150, 32, "secondary", (s, e) => Msg(GuideMs, "Panduan", MessageBoxButtons.OK, MessageBoxIcon.None)), TR)); o5.Controls.Add(A(Btn("Tentang", 450, 12, 100, 32, "secondary", (s, e) => Msg(AboutMs, "Tentang", MessageBoxButtons.OK, MessageBoxIcon.None)), TR));
         foreach (CardPanel oc in new CardPanel[] { o1, o5 }) { Label od = (Label)oc.Controls[1]; od.Anchor = AnchorStyles.Top | AnchorStyles.Left; od.Width = 215; }   // butang bermula x=290
-        pOp.Controls.AddRange(new Control[] { o1, o2, o2b, o4, o3, o5 });
+        pOp.AutoScroll = true;   // jika tetingkap kecil, halaman boleh ditatal
+        pOp.Controls.AddRange(new Control[] { o1, o2, o2b, o4, o3, o6, o5 });
         pages = new Panel[] { p1, p2, pS, pD, pQ, p3, pH, pP, pPr, pI, pW, pHc, pOp, pLg };
         ov = A(new LoadingOverlay(), ALL); ov.Location = new Point(0, 0); ov.Size = new Size(610, 476); ov.Bar = bar; ov.Tr = T; ov.LogoImg = Logo(96); ov.CancelClicked += (s, e) => cancelReq = true;
         main.Controls.Add(pH); main.Controls.Add(pP); main.Controls.Add(pPr); main.Controls.Add(pI); main.Controls.Add(pW); main.Controls.Add(pHc); main.Controls.Add(pOp); main.Controls.Add(ov); ov.BringToFront();

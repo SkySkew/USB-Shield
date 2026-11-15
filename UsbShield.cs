@@ -18,8 +18,8 @@ using Microsoft.Win32;
 [assembly: AssemblyDescription("Pembaiki flashdisk dan pembersih PC - USB Shield")]
 [assembly: AssemblyProduct("USB Shield")]
 [assembly: AssemblyCopyright("USB Shield")]
-[assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0.0.0")]
+[assembly: AssemblyVersion("2.1.0.0")]
+[assembly: AssemblyFileVersion("2.1.0.0")]
 
 static class Program
 {
@@ -61,7 +61,8 @@ public partial class MainForm : Form
     readonly string exeDir = AppDomain.CurrentDomain.BaseDirectory;
 
     const string GuideMs = "1. (Pilihan) Kemas kini Defender.\n2. Cucuk flashdisk dan pilih drive.\n3. Klik Bersihkan Semua.\n4. Semak senarai fail mencurigakan: tanda yang BUKAN milik anda dan kuarantin.\n5. Imbas seluruh PC dengan Windows Security > Full Scan.";
-    const string AboutMs = "USB Shield\nMembaiki kesan shortcut virus dan memanggil Microsoft Defender untuk membuang virus sebenar. Bukan enjin antivirus sendiri.";
+    const string AppVer = "2.1.0", Repo = "SkySkew/USB-Shield";
+    const string AboutMs = "USB Shield 2.1\nMembaiki kesan shortcut virus dan memanggil Microsoft Defender (atau ClamAV jika ada) untuk membuang virus sebenar. Bukan enjin antivirus sendiri.\n\nhttps://github.com/SkySkew/USB-Shield";
 
     // ---------- kawalan ----------
     DriveSelect cb; ListView list, list2, listQ; Label det1, det2, detQ; TextBox log; Label logLbl; BusyBar bar;
