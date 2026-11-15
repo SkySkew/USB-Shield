@@ -1,0 +1,14 @@
+SANDARAN USB Shield
+===================
+Kalau USB Shield.exe di folder atas dipadam atau dikuarantin oleh antivirus, ada dua pilihan:
+
+1) "Bina semula USB Shield.bat" - membina semula USB Shield.exe PENUH daripada kod sumber (UsbShield.cs dan lain-lain di folder atas).
+   Perlu fail sumber itu kekal. Antivirus mungkin menanda hasilnya lagi; kalau begitu, tambah folder ini ke Allow list.
+
+2) "USB Shield.bat" - versi skrip LAMA yang menggunakan PowerShell. Ia tak dikesan sebagai .exe, tetapi fungsinya lebih terhad:
+   pulihkan fail, kuarantin .lnk, imbasan Defender, imbasan ClamAV luar talian (menu Alat), semak permulaan PC, bersihkan Temp.
+   TIADA: import pangkalan data ClamAV, cache pelayar, sejarah imbasan, kemajuan nama fail, skrin tajam (DPI).
+   Untuk ClamAV, ia guna folder ClamAV yang sama di folder atas (tak perlu salin lagi).
+   Fail USB Shield.bat dan USBShield.ps1 mesti kekal sebelah-menyebelah.
+
+   NOTA: versi skrip ini hanya sandaran dan TIDAK dikemas kini. Ciri baharu USB Shield.exe (Semak Kesihatan, pembersih berkategori, fail pendua, padam selamat, kemas kini program, semakan automatik) tiada di sini. Guna USB Shield.exe jika boleh.

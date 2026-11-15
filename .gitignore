@@ -1,0 +1,5 @@
+# fail besar atau terhasil: tidak dimasukkan dalam repo
+ClamAV/
+*.exe
+*.zip
+*.bak
