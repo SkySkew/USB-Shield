@@ -230,6 +230,7 @@ public partial class MainForm : Form
                 else if (k == "appchk") appChk = v;
                 else if (k == "appseen") appSeen = v;
                 else if (k == "avauto") avAuto = v == "1";
+                else if (k == "tray") toTray = v == "1";
                                 else if (k == "upd") { string[] u = v.Split(','); int n; if (u.Length == 2 && int.TryParse(u[1], out n)) { updDay = u[0]; updN = n; } }
             }
             if (chkAuto != null) chkAuto.Checked = autoCheck;

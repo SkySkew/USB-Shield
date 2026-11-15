@@ -18,19 +18,62 @@ using Microsoft.Win32;
 [assembly: AssemblyDescription("Pembaiki flashdisk dan pembersih PC - USB Shield")]
 [assembly: AssemblyProduct("USB Shield")]
 [assembly: AssemblyCopyright("USB Shield")]
-[assembly: AssemblyVersion("2.1.0.0")]
-[assembly: AssemblyFileVersion("2.1.0.0")]
+[assembly: AssemblyVersion("2.1.1.0")]
+[assembly: AssemblyFileVersion("2.1.1.0")]
 
 static class Program
 {
     [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool SetProcessDPIAware();
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool EnumWindows(EnumProc cb, IntPtr l);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+    [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode)] static extern int GetWindowText(IntPtr h, System.Text.StringBuilder s, int n);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool ShowWindow(IntPtr h, int cmd);
+    [System.Runtime.InteropServices.DllImport("user32.dll")] static extern bool SetForegroundWindow(IntPtr h);
+    delegate bool EnumProc(IntPtr h, IntPtr l);
+
+    // salinan kedua tidak dibuka; tetingkap salinan pertama (walaupun tersembunyi di dulang sistem) dipaparkan semula
+    static void ShowRunning()
+    {
+        System.Diagnostics.Process me = System.Diagnostics.Process.GetCurrentProcess();
+        List<uint> pids = new List<uint>();
+        foreach (System.Diagnostics.Process p in System.Diagnostics.Process.GetProcessesByName(me.ProcessName)) if (p.Id != me.Id) pids.Add((uint)p.Id);
+        EnumWindows((h, l) =>
+        {
+            uint pid; GetWindowThreadProcessId(h, out pid);
+            if (pids.Contains(pid)) { System.Text.StringBuilder t = new System.Text.StringBuilder(64); GetWindowText(h, t, 64); if (t.ToString() == "USB Shield") { ShowWindow(h, 5); ShowWindow(h, 9); SetForegroundWindow(h); return false; } }
+            return true;
+        }, IntPtr.Zero);
+    }
+
+    // ralat tak dijangka: catat dalam error.log dan beritahu pengguna, bukan terhempas senyap
+    static void Crash(Exception ex)
+    {
+        string where = "";
+        try
+        {
+            string dir = Path.Combine(Environment.GetEnvironmentVariable("APPDATA") ?? Path.GetTempPath(), "USB Shield");
+            Directory.CreateDirectory(dir); where = Path.Combine(dir, "error.log");
+            File.AppendAllText(where, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + "  v2.1\r\n" + ex + "\r\n\r\n");
+        }
+        catch { }
+        try { MessageBox.Show("USB Shield hit an unexpected error and will try to continue. / Ralat tak dijangka; app cuba diteruskan.\n\n" + ex.Message + (where.Length > 0 ? "\n\nDetails: " + where : ""), "USB Shield", MessageBoxButtons.OK, MessageBoxIcon.Warning); } catch { }
+    }
+
     [STAThread]
     static void Main()
     {
-        try { SetProcessDPIAware(); } catch { }   // teks tajam pada skrin 125%/150% (Windows 7 ke atas)
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new MainForm());
+        bool first;
+        using (System.Threading.Mutex single = new System.Threading.Mutex(true, @"Local\USB-Shield-single-instance", out first))
+        {
+            if (!first) { ShowRunning(); return; }
+            try { SetProcessDPIAware(); } catch { }   // teks tajam pada skrin 125%/150% (Windows 7 ke atas)
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (s, e) => Crash(e.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (s, e) => Crash(e.ExceptionObject as Exception ?? new Exception("Unknown error"));
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+            Application.Run(new MainForm());
+        }
     }
 }
 
@@ -61,7 +104,7 @@ public partial class MainForm : Form
     readonly string exeDir = AppDomain.CurrentDomain.BaseDirectory;
 
     const string GuideMs = "1. (Pilihan) Kemas kini Defender.\n2. Cucuk flashdisk dan pilih drive.\n3. Klik Bersihkan Semua.\n4. Semak senarai fail mencurigakan: tanda yang BUKAN milik anda dan kuarantin.\n5. Imbas seluruh PC dengan Windows Security > Full Scan.";
-    const string AppVer = "2.1.0", Repo = "SkySkew/USB-Shield";
+    const string AppVer = "2.1.1", Repo = "SkySkew/USB-Shield";
     const string AboutMs = "USB Shield 2.1\nMembaiki kesan shortcut virus dan memanggil Microsoft Defender (atau ClamAV jika ada) untuk membuang virus sebenar. Bukan enjin antivirus sendiri.\n\nhttps://github.com/SkySkew/USB-Shield";
 
     // ---------- kawalan ----------
